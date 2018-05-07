@@ -13,7 +13,7 @@ class NapData:
         self.save_dir = "C:/Users/Robert Cartwright/Dropbox/MathsyBoyz/ugly_betting/"
         self.url_base = 'http://racing.betting-directory.com/naps/'
 
-    def create_url(self, date):
+    def create_date_url(self, date):
         """
         date takes integer date yyyymmdd
         """
@@ -89,7 +89,10 @@ class NapData:
 
         df.columns = df.iloc[0].values
         df = df.iloc[1:]
-        df['Result'] = df['Result'].astype(str)
+        try:
+            df['Result'] = df['Result'].astype(str)
+        except:
+            KeyError
         df['Odds'] = df['Odds'].astype(str)
         df.drop(['Silk'], axis=1, inplace=True)
 
@@ -99,11 +102,18 @@ class NapData:
         """
         date takes integer date yyyymmdd
         """
-        date_url = self.create_url(date)
+        date_url = self.create_date_url(date)
         table_html = self.get_table_html(date_url)
         table_on_date = self.parse_html_table(table_html)
 
         return table_on_date
+
+    def today_table(self):
+        today_url = 'http://racing.betting-directory.com/daily-naps.php'
+        table_html = self.get_table_html(today_url)
+        today_table = self.parse_html_table(table_html)
+
+        return today_table
 
     def save_table(self, date):
         """
@@ -113,10 +123,8 @@ class NapData:
         table_on_date = self.table_on_date(date)
         table_on_date.to_csv(path, index=False)
 
-    def update_current_table(self):
-
+    def update_today_table(self):
         curr_dttime = str(datetime.datetime.now().strftime("%Y%m%d%H%M%S"))
-        curr_date = curr_dttime[:8]
         path = self.save_dir + curr_dttime + '.csv'
-        curr_table = self.table_on_date(int(curr_date))
+        curr_table = self.today_table()
         curr_table.to_csv(path, index=False)
