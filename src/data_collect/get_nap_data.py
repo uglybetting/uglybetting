@@ -12,10 +12,12 @@ class NapData:
     def __init__(self):
         self.save_dir = "C:/Users/Robert Cartwright/Dropbox/MathsyBoyz/ugly_betting/"
         self.url_base = 'http://racing.betting-directory.com/naps/'
+        self.curr_table = pd.DataFrame()
 
     def create_date_url(self, date):
         """
-        date takes integer date yyyymmdd
+        integer date yyyymmdd
+        creates url for historic data date
         """
         assert type(date) == int
         date = str(date)
@@ -34,6 +36,9 @@ class NapData:
         return url
 
     def get_table_html(self, url):
+        """
+        gets the relevant part of html
+        """
         response = requests.get(url)
         soup = BeautifulSoup(response.text, 'html.parser')
         table_html = soup.find_all('table')[0]
@@ -41,6 +46,9 @@ class NapData:
         return table_html
 
     def parse_html_table(self, table):
+        """
+        converts html table to dataframe
+        """
         n_columns = 0
         n_rows = 0
         column_names = []
@@ -100,7 +108,8 @@ class NapData:
 
     def table_on_date(self, date):
         """
-        date takes integer date yyyymmdd
+        integer date yyyymmdd
+        wraps functions to return data df on date
         """
         date_url = self.create_date_url(date)
         table_html = self.get_table_html(date_url)
@@ -109,6 +118,9 @@ class NapData:
         return table_on_date
 
     def today_table(self):
+        """
+        gets today's table - url is different for live vs. historic
+        """
         today_url = 'http://racing.betting-directory.com/daily-naps.php'
         table_html = self.get_table_html(today_url)
         today_table = self.parse_html_table(table_html)
@@ -117,14 +129,22 @@ class NapData:
 
     def save_table(self, date):
         """
-        date takes integer date yyyymmdd
+        integer date yyyymmdd
+        saves table to csv
         """
         path = self.save_dir + str(date) + '.csv'
         table_on_date = self.table_on_date(date)
         table_on_date.to_csv(path, index=False)
 
     def update_today_table(self):
+        """
+        writes a new file with time stamp if table data has changed
+        """
         curr_dttime = str(datetime.datetime.now().strftime("%Y%m%d%H%M%S"))
         path = self.save_dir + curr_dttime + '.csv'
         curr_table = self.today_table()
-        curr_table.to_csv(path, index=False)
+        if self.curr_table.equals(curr_table):
+            pass
+        else:
+            curr_table.to_csv(path, index=False)
+            self.curr_table = curr_table
