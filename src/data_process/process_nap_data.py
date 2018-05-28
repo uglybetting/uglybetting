@@ -227,14 +227,6 @@ class ProcessNapData:
         return ohlc_df
 
 
-test = ProcessNapData()
-# test.process_file('20180519130519.csv')
-# x = test.get_date_df('20180526')
-x = test.get_ohlc_on_date('20180519')
-print(x)
-
-
-
 
 
 
